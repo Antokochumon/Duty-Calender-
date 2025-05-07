@@ -105,12 +105,20 @@
 
     .today {
       background-color: #f7d794;
+      color: red;
     }
 
     .duty {
       background-color: #78e08f;
       color: #000;
     }
+
+    .duty.today {
+  background-color: #78e08f; /* Green like other duty days */
+  color: red !important;     /* Number stays red */
+  font-weight: bold;
+}
+
 
     .footer {
       text-align: center;
@@ -201,12 +209,12 @@
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-        if (dateStr === todayStr) {
-          dateDiv.classList.add('today');
-        }
-
         if (dutyDates.includes(dateStr)) {
           dateDiv.classList.add('duty');
+        }
+
+        if (dateStr === todayStr) {
+          dateDiv.classList.add('today');
         }
 
         calendarContainer.appendChild(dateDiv);

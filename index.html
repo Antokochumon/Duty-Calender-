@@ -93,19 +93,16 @@
     }
 
     .date {
-  background: white;
-  border-radius: 9px;
-  text-align: center;
-  padding: 20px 0;
-  border: 1.3px solid #ddd;
-  font-weight: 800;
-  font-size: 16px; /* Increased size */
-  color: #333;
-  transition: background-color 0.3s ease;
-}
-
-
-
+      background: white;
+      border-radius: 9px;
+      text-align: center;
+      padding: 20px 0;
+      border: 1.3px solid #ddd;
+      font-weight: 800;
+      font-size: 16px;
+      color: #333;
+      transition: background-color 0.3s ease;
+    }
 
     .today {
       background-color: #f7d794;
@@ -118,11 +115,10 @@
     }
 
     .duty.today {
-  background-color: #78e08f; /* Green like other duty days */
-  color: red !important;     /* Number stays red */
-  font-weight: bold;
-}
-
+      background-color: #78e08f;
+      color: red !important;
+      font-weight: bold;
+    }
 
     .footer {
       text-align: center;
@@ -181,7 +177,7 @@
     let currentMonth = new Date().getMonth();
     const year = 2025;
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     function renderCalendar(month) {
       calendarContainer.innerHTML = '';
@@ -195,7 +191,9 @@
         calendarContainer.appendChild(dayDiv);
       });
 
-      const firstDayIndex = new Date(year, month, 1).getDay();
+      const firstDay = new Date(year, month, 1).getDay();
+      const firstDayIndex = (firstDay + 6) % 7; // Shift Sunday (0) to last
+
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
       // Add empty slots

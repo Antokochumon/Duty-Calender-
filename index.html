@@ -10,6 +10,7 @@
       background: #f0f4f8;
       padding: 20px;
       margin: 0;
+      touch-action: pan-y; /* Allow vertical scrolling but prevent horizontal */
     }
 
     h1 {
@@ -142,6 +143,30 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    /* Swipe animation */
+    .calendar-container {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .calendar.swipe-left {
+      animation: swipeLeft 0.3s ease-in-out;
+    }
+    
+    .calendar.swipe-right {
+      animation: swipeRight 0.3s ease-in-out;
+    }
+    
+    @keyframes swipeLeft {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(-100%); opacity: 0; }
+    }
+    
+    @keyframes swipeRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -247,10 +272,47 @@
     }
 
     function changeMonth(offset) {
-      currentMonth += offset;
-      if (currentMonth > 11) currentMonth = 0;
-      if (currentMonth < 0) currentMonth = 11;
-      renderCalendar(currentMonth);
+      // Add swipe animation class
+      calendarContainer.classList.add(offset > 0 ? 'swipe-left' : 'swipe-right');
+      
+      // Wait for animation to complete before changing month
+      setTimeout(() => {
+        currentMonth += offset;
+        if (currentMonth > 11) currentMonth = 0;
+        if (currentMonth < 0) currentMonth = 11;
+        
+        // Remove animation class and render new calendar
+        calendarContainer.classList.remove('swipe-left', 'swipe-right');
+        renderCalendar(currentMonth);
+      }, 300);
+    }
+
+    // Touch event handling for swipe gestures
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    
+    document.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, {passive: true});
+    
+    function handleSwipe() {
+      const threshold = 50; // Minimum swipe distance in pixels
+      const diff = touchEndX - touchStartX;
+      
+      if (Math.abs(diff) > threshold) {
+        if (diff > 0) {
+          // Swipe right - go to previous month
+          changeMonth(-1);
+        } else {
+          // Swipe left - go to next month
+          changeMonth(1);
+        }
+      }
     }
 
     renderCalendar(currentMonth);

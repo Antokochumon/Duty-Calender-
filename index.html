@@ -4,340 +4,917 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>2025 Duty Calendar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      padding: 20px;
+    :root {
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --duty: #10b981;
+      --leave: #6366f1;
+      --overtime: #f59e0b;
+      --today: #ef4444;
+      --hover: #f1f5f9;
+      --shadow: rgba(0, 0, 0, 0.05);
+      --summary-height: 60px;
+    }
+    body.dark {
+      --bg: #0f172a;
+      --text: #f1f5f9;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #60a5fa;
+      --duty: #34d399;
+      --leave: #818cf8;
+      --overtime: #fbbf24;
+      --today: #f87171;
+      --hover: #1e293b;
+      --shadow: rgba(0, 0, 0, 0.2);
+    }
+    * {
+      box-sizing: border-box;
       margin: 0;
-      touch-action: pan-y; /* Allow vertical scrolling but prevent horizontal */
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 10px;
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      padding: 12px;
+      margin: 0;
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+      line-height: 1.5;
+      position: relative;
+      min-height: 100vh;
+      padding-bottom: 50px;
+      font-size: 14px;
     }
-
-    .controls {
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    header {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 19px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 8px 0;
     }
-
-    .controls input[type="date"],
-    .controls button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 4px;
-      border-radius: 8px;
-      border: none;
-    }
-
-    .controls input[type="date"] {
-      border: 1px solid #ccc;
-    }
-
-    .controls button {
-      background: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    .controls button:hover {
-      background: #2980b9;
-    }
-
-    .calendar-nav {
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--duty));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0 0 10px 0;
       text-align: center;
-      margin: 20px 0 10px;
     }
-
-    .calendar-nav button {
-      background-color: #2ecc71;
-      margin: 0 10px;
-      font-size: 16px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      color: white;
+    .header-controls {
+      display: flex;
+      gap: 9px;
+      justify-content: center;
+    }
+    .icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px var(--shadow);
+      font-size: 0.9rem;
     }
-
-    .calendar-nav button:hover {
-      background-color: #27ae60;
+    .icon-btn:hover {
+      box-shadow: 0 3px 6px var(--shadow);
+      transform: translateY(-2px);
     }
-
+    .summary-panel {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 3px 8px var(--shadow);
+      height: var(--summary-height);
+    }
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .summary-count {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .summary-label {
+      font-size: 0.6rem;
+      opacity: 0.8;
+    }
+    .duty-summary { color: var(--duty); }
+    .leave-summary { color: var(--leave); }
+    .overtime-summary { color: var(--overtime); }
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0;
+      position: relative;
+    }
     .month-title {
       text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 5px;
-      color: #34495e;
+      font-size: 1.2rem;
+      font-weight: 700;
+      flex-grow: 1;
+      padding: 0 8px;
     }
-
+    .swipe-area {
+      position: absolute;
+      top: 0;
+      width: 20%;
+      height: 100%;
+      z-index: 2;
+    }
+    .swipe-left {
+      left: 0;
+    }
+    .swipe-right {
+      right: 0;
+    }
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 4px;
-      max-width: 800px;
       margin: 0 auto;
       animation: fadeIn 0.5s ease-in-out;
     }
-
+    /* INCREASED DAY TITLE SIZE */
     .day-name {
-      font-weight: bold;
+      font-weight: 700;
       text-align: center;
-      color: #555;
+      padding: 10px 0;
+      font-size: 0.95rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-
     .date {
-      background: white;
-      border-radius: 9px;
+      background: var(--card);
+      border-radius: 10px;
       text-align: center;
-      padding: 20px 0;
-      border: 1.3px solid #ddd;
+      padding: 8px 0;
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+      cursor: pointer;
+      aspect-ratio: 1/1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 4px var(--shadow);
+      position: relative;
+    }
+    .date:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow);
+      background: var(--hover);
+    }
+    .date.today .date-number {
+      color: var(--today);
       font-weight: 800;
-      font-size: 16px;
-      color: #333;
-      transition: background-color 0.3s ease;
     }
-
-    .today {
-      background-color: #f7d794;
-      color: red;
+    .date.duty {
+      background-color: var(--duty);
+      color: white;
     }
-
-    .duty {
-      background-color: #78e08f;
-      color: #000;
+    .date.annual-leave {
+      background-color: var(--leave);
+      color: white;
     }
-
-    .duty.today {
-      background-color: #78e08f;
-      color: red !important;
-      font-weight: bold;
+    .date.overtime {
+      background-color: var(--overtime);
+      color: white;
     }
-
+    .date-event-indicator {
+      position: absolute;
+      bottom: 4px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+    .event-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.8;
+    }
+    .date.duty .date-event-indicator,
+    .date.annual-leave .date-event-indicator,
+    .date.overtime .date-event-indicator {
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .floating-btn {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1.1rem;
+    }
+    .floating-btn:hover {
+      transform: scale(1.1);
+    }
     .footer {
       text-align: center;
-      margin-top: 100px;
-      font-size: 14px;
-      color: #888;
+      margin-top: 25px;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      padding: 8px;
     }
-
-    /* Ad container styling */
-    .ad-container {
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      animation: fadeIn 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background-color: var(--card);
+      margin: auto;
+      padding: 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 380px;
       text-align: center;
-      margin: 20px auto;
-      max-width: 320px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: slideUp 0.4s ease-out;
     }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: var(--text);
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+    .modal-close:hover {
+      opacity: 1;
+    }
+    .modal-title {
+      font-size: 1.2rem;
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    .modal-date {
+      display: block;
+      margin: 12px 0;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .modal-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .modal-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .duty-btn { background: var(--duty); color: white; }
+    .leave-btn { background: var(--leave); color: white; }
+    .overtime-btn { background: var(--overtime); color: white; }
+    .delete-btn { 
+      background: var(--card); 
+      background-color: red;
+      var(--text);
+      border: 1px solid var(--border);
+      grid-column: span 2;
+      margin-top: 8px;
+    }
+    .modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+    .stats-modal {
+      display: none;
+    }
+    .stats-content {
+      max-height: 50vh;
+      overflow-y: auto;
+      font-size: 0.9rem;
+    }
+    .stats-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-percentage {
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .export-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .export-btn {
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+    .export-btn.pdf {
+      background: #e74c3c;
+    }
+    .export-btn.json {
+      background: var(--duty);
+    }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    @keyframes slideUp { from{opacity:0; transform:translate(-50%, -40%);} to{opacity:1; transform:translate(-50%, -50%);} }
 
-    @media (max-width: 600px) {
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .summary-panel {
+        padding: 10px;
+        height: 50px;
+      }
+      .summary-count {
+        font-size: 1.0rem;
+      }
+      .summary-label {
+        font-size: 0.9rem;
+      }
       .calendar {
-        font-size: 12px;
+        gap: 3px;
       }
-
-      .calendar-nav button {
-        padding: 8px 16px;
-        font-size: 14px;
+      .date {
+        padding: 6px 0;
+        font-size: 0.8rem;
+      }
+      .modal-buttons {
+        grid-template-columns: 1fr;
+      }
+      .delete-btn {
+        grid-column: span 1;
+      }
+      /* Responsive day title size */
+      .day-name {
+        font-size: 0.85rem;
+        padding: 8px 0;
       }
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    @media (max-width: 480px) {
+      .summary-panel {
+        height: 45px;
+      }
+      .summary-count {
+        font-size: 0.90rem;
+      }
+      .month-title {
+        font-size: 1.5rem;
+      }
+      .date {
+        padding: 5px 0;
+        font-size: 0.75rem;
+        border-radius: 8px;
+      }
+      /* Responsive day title size */
+      .day-name {
+        font-size: 0.8rem;
+        padding: 7px 0;
+      }
     }
     
-    /* Swipe animation */
-    .calendar-container {
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .calendar.swipe-left {
-      animation: swipeLeft 0.3s ease-in-out;
-    }
-    
-    .calendar.swipe-right {
-      animation: swipeRight 0.3s ease-in-out;
-    }
-    
-    @keyframes swipeLeft {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(-100%); opacity: 0; }
-    }
-    
-    @keyframes swipeRight {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
+    /* Compact mode for very small screens */
+    @media (max-width: 360px) {
+      body {
+        padding: 8px;
+        font-size: 13px;
+      }
+      .summary-panel {
+        height: 55px;
+        padding: 9px;
+      }
+      .summary-count {
+        font-size: 1.1rem;
+      }
+      .summary-label {
+        font-size: 0.8rem;
+      }
+      .date {
+        padding: 4px 0;
+        font-size: 0.7rem;
+      }
+      /* Responsive day title size */
+      .day-name {
+        font-size: 0.75rem;
+        padding: 6px 0;
+      }
+      .floating-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <header>
+      <h1>2025 Duty Calendar</h1>
+      <div class="header-controls">
+        <button class="icon-btn" onclick="toggleDarkMode()">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button class="icon-btn" onclick="jumpToToday()">
+          <i class="fas fa-calendar-day"></i>
+        </button>
+        <button class="icon-btn" onclick="showExportModal()">
+          <i class="fas fa-file-export"></i>
+        </button>
+        <button class="icon-btn" onclick="showStatsModal()">
+          <i class="fas fa-chart-pie"></i>
+        </button>
+      </div>
+    </header>
 
-  <h1>2025 Duty Calendar</h1>
-
-  <div class="controls">
-    <input type="date" id="dutyDateInput" />
-    <div>
-      <button onclick="addDutyDate()">Add Duty</button>
-      <button onclick="deleteDutyDate()">Delete Duty</button>
+    <div class="summary-panel">
+      <div class="summary-item duty-summary">
+        <span class="summary-count" id="dutyCount">0</span>
+        <span class="summary-label">Duty</span>
+      </div>
+      <div class="summary-item leave-summary">
+        <span class="summary-count" id="leaveCount">0</span>
+        <span class="summary-label">Leave</span>
+      </div>
+      <div class="summary-item overtime-summary">
+        <span class="summary-count" id="overtimeCount">0</span>
+        <span class="summary-label">Overtime</span>
+      </div>
     </div>
-  </div>
 
-  <div class="calendar-nav">
-    <button onclick="changeMonth(-1)">Previous</button>
-    <span class="month-title" id="monthTitle"></span>
-    <button onclick="changeMonth(1)">Next</button>
-  </div>
+    <div class="calendar-nav">
+      <div class="swipe-area swipe-left" onclick="changeMonth(-1)"></div>
+      <span class="month-title" id="monthTitle"></span>
+      <div class="swipe-area swipe-right" onclick="changeMonth(1)"></div>
+    </div>
 
-  <div class="calendar" id="calendarContainer"></div>
+    <div class="calendar" id="calendarContainer"></div>
 
-  <div class="footer">
-    Designed and Developed by Anto Kochumon. Copyright © 2025. All rights reserved.
-  </div>
+    <!-- Duty Modal -->
+    <div id="dutyModal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 class="modal-title">Select Duty Type</h3>
+        <span class="modal-date" id="modalDate"></span>
+        <div class="modal-buttons">
+          <button class="modal-btn duty-btn" onclick="setDutyType('duty')">
+            <i class="fas fa-user-check"></i> Duty
+          </button>
+          <button class="modal-btn leave-btn" onclick="setDutyType('annual-leave')">
+            <i class="fas fa-umbrella-beach"></i> Leave
+          </button>
+          <button class="modal-btn overtime-btn" onclick="setDutyType('overtime')">
+            <i class="fas fa-briefcase"></i> Overtime
+          </button>
+          <button class="modal-btn delete-btn" onclick="setDutyType('delete')">
+            <i class="fas fa-trash-alt"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
 
-  <!-- Ad container -->
-  <div class="ad-container">
-    <script type="text/javascript">
-      atOptions = {
-        'key' : '904a68ca5966ad10a2bbcba820b31288',
-        'format' : 'iframe',
-        'height' : 50,
-        'width' : 320,
-        'params' : {}
-      };
-    </script>
-    <script type="text/javascript" src="//encouragingbrightest.com/904a68ca5966ad10a2bbcba820b31288/invoke.js"></script>
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal stats-modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 class="modal-title">Annual Statistics</h3>
+        <div class="stats-content" id="statsContent"></div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 class="modal-title">Export Data</h3>
+        <div class="export-options">
+          <button class="export-btn pdf" onclick="exportPDF()">
+            <i class="fas fa-file-pdf"></i> Export as PDF
+          </button>
+          <button class="export-btn json" onclick="exportJSON()">
+            <i class="fas fa-file-code"></i> Export as JSON
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="floating-btn" onclick="jumpToToday()">
+      <i class="fas fa-calendar-day"></i>
+    </div>
+
+    <div class="footer">Designed & Developed by <strong>Anto Kochumon</strong> <br> ©  2025 Duty Calendar</div>
   </div>
 
   <script>
     const calendarContainer = document.getElementById('calendarContainer');
     const monthTitle = document.getElementById('monthTitle');
-    const dutyDateInput = document.getElementById('dutyDateInput');
-    const dutyDates = JSON.parse(localStorage.getItem('dutyDates2025')) || [];
-
+    const dutyModal = document.getElementById('dutyModal');
+    const statsModal = document.getElementById('statsModal');
+    const exportModal = document.getElementById('exportModal');
+    const modalDateSpan = document.getElementById('modalDate');
+    const dutyCountEl = document.getElementById('dutyCount');
+    const leaveCountEl = document.getElementById('leaveCount');
+    const overtimeCountEl = document.getElementById('overtimeCount');
+    const statsContent = document.getElementById('statsContent');
+    
+    let dutyData = JSON.parse(localStorage.getItem('dutyData2025')) || { duty: [], 'annual-leave': [], overtime: [] };
     let currentMonth = new Date().getMonth();
     const year = 2025;
-
+    let selectedDate = null;
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Touch events for swiping
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    function handleTouchStart(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }
+
+    function handleTouchEnd(e) {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }
+
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      
+      if (touchEndX < touchStartX - swipeThreshold) {
+        // Swipe left - next month
+        changeMonth(1);
+      }
+      
+      if (touchEndX > touchStartX + swipeThreshold) {
+        // Swipe right - previous month
+        changeMonth(-1);
+      }
+    }
 
     function renderCalendar(month) {
       calendarContainer.innerHTML = '';
-      monthTitle.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-
+      const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
+      monthTitle.textContent = `${monthName} ${year}`;
+      
       // Add day names
-      dayNames.forEach(day => {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'day-name';
-        dayDiv.textContent = day;
-        calendarContainer.appendChild(dayDiv);
+      dayNames.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day-name';
+        el.textContent = d;
+        calendarContainer.appendChild(el);
       });
-
+      
       const firstDay = new Date(year, month, 1).getDay();
-      const firstDayIndex = (firstDay + 6) % 7; // Shift Sunday (0) to last
-
+      const firstDayIndex = (firstDay + 6) % 7; // Adjust so Monday is first day
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      // Add empty slots
+      
+      // Add empty cells for days before the first day of the month
       for (let i = 0; i < firstDayIndex; i++) {
-        const empty = document.createElement('div');
-        calendarContainer.appendChild(empty);
+        calendarContainer.appendChild(document.createElement('div'));
       }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dateDiv = document.createElement('div');
-        dateDiv.className = 'date';
-        dateDiv.textContent = day;
-
+      
+      // Add days of the month
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const div = document.createElement('div');
+        div.className = 'date';
+        
+        const dateNumber = document.createElement('div');
+        dateNumber.className = 'date-number';
+        dateNumber.textContent = d;
+        div.appendChild(dateNumber);
+        
+        div.dataset.date = dateStr;
+        
+        // Check if today
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-        if (dutyDates.includes(dateStr)) {
-          dateDiv.classList.add('duty');
+        if (dateStr === todayStr) div.classList.add('today');
+        
+        // Check for duty types
+        if (dutyData.duty.includes(dateStr)) div.classList.add('duty');
+        if (dutyData['annual-leave'].includes(dateStr)) div.classList.add('annual-leave');
+        if (dutyData.overtime.includes(dateStr)) div.classList.add('overtime');
+        
+        // Add event indicator if needed
+        if (dutyData.duty.includes(dateStr) || dutyData['annual-leave'].includes(dateStr) || dutyData.overtime.includes(dateStr)) {
+          const indicator = document.createElement('div');
+          indicator.className = 'date-event-indicator';
+          indicator.innerHTML = '<div class="event-dot"></div>';
+          div.appendChild(indicator);
         }
-
-        if (dateStr === todayStr) {
-          dateDiv.classList.add('today');
-        }
-
-        calendarContainer.appendChild(dateDiv);
+        
+        div.addEventListener('click', () => {
+          selectedDate = dateStr;
+          showDutyModal(dateStr);
+        });
+        
+        calendarContainer.appendChild(div);
       }
+      
+      updateSummary();
     }
 
-    function addDutyDate() {
-      const date = dutyDateInput.value;
-      if (date.startsWith("2025") && !dutyDates.includes(date)) {
-        dutyDates.push(date);
-        localStorage.setItem('dutyDates2025', JSON.stringify(dutyDates));
-        const month = parseInt(date.split("-")[1]) - 1;
-        currentMonth = month;
-        renderCalendar(currentMonth);
-      }
+    function showDutyModal(date) {
+      const d = new Date(date);
+      modalDateSpan.textContent = `${d.toLocaleString('default', { weekday: 'short' })}, ${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${year}`;
+      dutyModal.style.display = 'block';
+    }
+    
+    function showStatsModal() {
+      // Calculate statistics
+      const totalDays = new Date(year, 12, 0).getDate(); // Days in the year
+      const dutyDays = dutyData.duty.length;
+      const leaveDays = dutyData['annual-leave'].length;
+      const overtimeDays = dutyData.overtime.length;
+      const freeDays = totalDays - (dutyDays + leaveDays + overtimeDays);
+      
+      const dutyPercent = ((dutyDays / totalDays) * 100).toFixed(1);
+      const leavePercent = ((leaveDays / totalDays) * 100).toFixed(1);
+      const overtimePercent = ((overtimeDays / totalDays) * 100).toFixed(1);
+      const freePercent = ((freeDays / totalDays) * 100).toFixed(1);
+      
+      statsContent.innerHTML = `
+        <div class="stats-item">
+          <span>Total Days:</span>
+          <span>${totalDays}</span>
+        </div>
+        <div class="stats-item">
+          <span>Duty Days:</span>
+          <span>${dutyDays} <span class="stats-percentage">(${dutyPercent}%)</span></span>
+        </div>
+        <div class="stats-item">
+          <span>Annual Leave:</span>
+          <span>${leaveDays} <span class="stats-percentage">(${leavePercent}%)</span></span>
+        </div>
+        <div class="stats-item">
+          <span>Overtime Days:</span>
+          <span>${overtimeDays} <span class="stats-percentage">(${overtimePercent}%)</span></span>
+        </div>
+        <div class="stats-item">
+          <span>Free Days:</span>
+          <span>${freeDays} <span class="stats-percentage">(${freePercent}%)</span></span>
+        </div>
+      `;
+      
+      statsModal.style.display = 'block';
+    }
+    
+    function showExportModal() {
+      exportModal.style.display = 'block';
     }
 
-    function deleteDutyDate() {
-      const date = dutyDateInput.value;
-      const index = dutyDates.indexOf(date);
-      if (index !== -1) {
-        dutyDates.splice(index, 1);
-        localStorage.setItem('dutyDates2025', JSON.stringify(dutyDates));
-        const month = parseInt(date.split("-")[1]) - 1;
-        currentMonth = month;
-        renderCalendar(currentMonth);
+    function closeModal() {
+      dutyModal.style.display = 'none';
+      statsModal.style.display = 'none';
+      exportModal.style.display = 'none';
+    }
+
+    function setDutyType(type) {
+      if (!selectedDate) return;
+      
+      // Remove from all categories first
+      for (const t in dutyData) {
+        dutyData[t] = dutyData[t].filter(x => x !== selectedDate);
       }
+      
+      // Add to selected category if not delete
+      if (type !== 'delete') {
+        dutyData[type].push(selectedDate);
+      }
+      
+      localStorage.setItem('dutyData2025', JSON.stringify(dutyData));
+      dutyModal.style.display = 'none';
+      renderCalendar(currentMonth);
     }
 
     function changeMonth(offset) {
-      // Add swipe animation class
-      calendarContainer.classList.add(offset > 0 ? 'swipe-left' : 'swipe-right');
-      
-      // Wait for animation to complete before changing month
-      setTimeout(() => {
-        currentMonth += offset;
-        if (currentMonth > 11) currentMonth = 0;
-        if (currentMonth < 0) currentMonth = 11;
-        
-        // Remove animation class and render new calendar
-        calendarContainer.classList.remove('swipe-left', 'swipe-right');
-        renderCalendar(currentMonth);
-      }, 300);
+      currentMonth += offset;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+      } else if (currentMonth < 0) {
+        currentMonth = 11;
+      }
+      renderCalendar(currentMonth);
     }
 
-    // Touch event handling for swipe gestures
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    document.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, {passive: true});
-    
-    document.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, {passive: true});
-    
-    function handleSwipe() {
-      const threshold = 50; // Minimum swipe distance in pixels
-      const diff = touchEndX - touchStartX;
+    function jumpToToday() {
+      const today = new Date();
+      currentMonth = today.getMonth();
+      renderCalendar(currentMonth);
+    }
+
+    function updateSummary() {
+      // Count events for the current month
+      const monthPrefix = `${year}-${String(currentMonth + 1).padStart(2, '0')}`;
       
-      if (Math.abs(diff) > threshold) {
-        if (diff > 0) {
-          // Swipe right - go to previous month
-          changeMonth(-1);
+      const dutyCount = dutyData.duty.filter(date => date.startsWith(monthPrefix)).length;
+      const leaveCount = dutyData['annual-leave'].filter(date => date.startsWith(monthPrefix)).length;
+      const overtimeCount = dutyData.overtime.filter(date => date.startsWith(monthPrefix)).length;
+      
+      dutyCountEl.textContent = dutyCount;
+      leaveCountEl.textContent = leaveCount;
+      overtimeCountEl.textContent = overtimeCount;
+    }
+    
+    function exportPDF() {
+      // Create a printable version of the calendar
+      const printableContent = document.createElement('div');
+      printableContent.innerHTML = `
+        <h1 style="text-align: center; margin-bottom: 15px; font-size: 1.5rem;">2025 Duty Calendar</h1>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+          <div style="background: #10b981; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${dutyData.duty.length}</div>
+            <div style="font-size: 12px;">Duty Days</div>
+          </div>
+          <div style="background: #6366f1; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${dutyData['annual-leave'].length}</div>
+            <div style="font-size: 12px;">Leave Days</div>
+          </div>
+          <div style="background: #f59e0b; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${dutyData.overtime.length}</div>
+            <div style="font-size: 12px;">Overtime Days</div>
+          </div>
+        </div>
+        <p style="text-align: center; margin-bottom: 15px; font-size: 12px;">Generated on ${new Date().toLocaleDateString()}</p>
+      `;
+      
+      // Create a temporary calendar for printing
+      const tempCalendar = document.createElement('div');
+      tempCalendar.innerHTML = calendarContainer.innerHTML;
+      tempCalendar.style.display = 'grid';
+      tempCalendar.style.gridTemplateColumns = 'repeat(7, 1fr)';
+      tempCalendar.style.gap = '3px';
+      
+      // Style the temporary calendar for printing
+      const dates = tempCalendar.querySelectorAll('.date');
+      dates.forEach(date => {
+        date.style.padding = '6px 0';
+        date.style.borderRadius = '6px';
+        date.style.border = '1px solid #ddd';
+        date.style.textAlign = 'center';
+        date.style.fontSize = '12px';
+        
+        if (date.classList.contains('duty')) {
+          date.style.background = '#10b981';
+          date.style.color = 'white';
+        } else if (date.classList.contains('annual-leave')) {
+          date.style.background = '#6366f1';
+          date.style.color = 'white';
+        } else if (date.classList.contains('overtime')) {
+          date.style.background = '#f59e0b';
+          date.style.color = 'white';
         } else {
-          // Swipe left - go to next month
-          changeMonth(1);
+          date.style.background = '#f8f9fa';
+        }
+        
+        // Highlight today
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (date.dataset.date === todayStr) {
+          date.style.fontWeight = 'bold';
+          date.style.color = 'red';
+        }
+      });
+      
+      printableContent.appendChild(tempCalendar);
+      
+      // Generate PDF
+      const options = {
+        margin: 10,
+        filename: 'duty-calendar-2025.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(options).from(printableContent).save();
+      closeModal();
+    }
+    
+    function exportJSON() {
+      const dataStr = JSON.stringify(dutyData, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = 'duty-calendar-2025.json';
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      closeModal();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      
+      // Update button icon
+      const themeIcon = document.querySelector('.icon-btn i.fa-moon, .icon-btn i.fa-sun');
+      if (themeIcon) {
+        if (document.body.classList.contains('dark')) {
+          themeIcon.className = 'fas fa-sun';
+        } else {
+          themeIcon.className = 'fas fa-moon';
         }
       }
     }
 
+    // Close modal when clicking outside
+    window.onclick = function(e) {
+      if (e.target.classList.contains('modal')) {
+        closeModal();
+      }
+    };
+
+    // Initialize
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
+    
+    // Add touch events for swiping
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+    
     renderCalendar(currentMonth);
   </script>
-
 </body>
 </html>

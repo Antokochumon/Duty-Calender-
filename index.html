@@ -219,6 +219,7 @@
       display: flex;
       justify-content: center;
       gap: 2px;
+      font-size: 0.7rem;
     }
     .event-dot {
       width: 4px;
@@ -255,7 +256,7 @@
     }
     .footer {
       text-align: center;
-      margin-top: 35px;
+      margin-top: 60px; /* Increased margin top */
       font-size: 0.75rem;
       opacity: 0.7;
       padding: 8px;
@@ -417,7 +418,7 @@
       }
       .date {
         padding: 6px 0;
-        font-size: 1.2rem;
+        font-size: 1.1rem; /* Changed to 1.1rem as requested */
       }
       .modal-buttons {
         grid-template-columns: 1fr;
@@ -444,7 +445,7 @@
       }
       .date {
         padding: 9px 0;
-        font-size: 1.2rem;
+        font-size: 1.1rem; /* Changed to 1.1rem as requested */
         border-radius: 8px;
       }
       /* Responsive day title size */
@@ -471,8 +472,8 @@
         font-size: 0.8rem;
       }
       .date {
-        padding: 7.9px 0;
-        font-size: 1.1rem;
+        padding: 8.3px 0;
+        font-size: 1.1rem; /* Changed to 1.1rem as requested */
       }
       /* Responsive day title size */
       .day-name {
@@ -484,6 +485,21 @@
         height: 45px;
         font-size: 1rem;
       }
+    }
+    
+    /* Duty period count display */
+    .duty-period-count {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 15px;
+      text-align: center;
+      box-shadow: 0 3px 8px var(--shadow);
+      font-size: 0.9rem;
+    }
+    .duty-period-count span {
+      font-weight: 700;
+      color: var(--duty);
     }
   </style>
 </head>
@@ -506,6 +522,10 @@
         </button>
       </div>
     </header>
+
+    <div class="duty-period-count" id="dutyPeriodCount">
+      Duties from <span id="periodStart">Aug 25</span> to <span id="periodEnd">Sep 25</span>: <span id="dutyCountInPeriod">0</span>
+    </div>
 
     <div class="summary-panel">
       <div class="summary-item duty-summary">
@@ -596,6 +616,10 @@
     const leaveCountEl = document.getElementById('leaveCount');
     const overtimeCountEl = document.getElementById('overtimeCount');
     const statsContent = document.getElementById('statsContent');
+    const dutyPeriodCountEl = document.getElementById('dutyPeriodCount');
+    const periodStartEl = document.getElementById('periodStart');
+    const periodEndEl = document.getElementById('periodEnd');
+    const dutyCountInPeriodEl = document.getElementById('dutyCountInPeriod');
     
     let dutyData = JSON.parse(localStorage.getItem('dutyData2025')) || { duty: [], 'annual-leave': [], overtime: [] };
     let currentMonth = new Date().getMonth();
@@ -692,6 +716,7 @@
       }
       
       updateSummary();
+      updateDutyPeriodCount(month);
     }
 
     function showDutyModal(date) {
@@ -794,6 +819,45 @@
       dutyCountEl.textContent = dutyCount;
       leaveCountEl.textContent = leaveCount;
       overtimeCountEl.textContent = overtimeCount;
+    }
+    
+    function updateDutyPeriodCount(month) {
+      // Calculate period from 25th of previous month to 25th of current month
+      let startMonth = month - 1;
+      let startYear = year;
+      
+      if (startMonth < 0) {
+        startMonth = 11;
+        startYear = year - 1;
+      }
+      
+      const startDate = new Date(startYear, startMonth, 25);
+      const endDate = new Date(year, month, 24);
+      
+      // Format dates for display
+      const startMonthName = startDate.toLocaleString('default', { month: 'short' });
+      const endMonthName = endDate.toLocaleString('default', { month: 'short' });
+      
+      periodStartEl.textContent = `${startMonthName} ${startDate.getDate()}`;
+      periodEndEl.textContent = `${endMonthName} ${endDate.getDate()}`;
+      
+      // Count duties in this period
+      let dutyCount = 0;
+      
+      for (const dutyDate of dutyData.duty) {
+        const dateParts = dutyDate.split('-');
+        const date = new Date(
+          parseInt(dateParts[0]),
+          parseInt(dateParts[1]) - 1,
+          parseInt(dateParts[2])
+        );
+        
+        if (date >= startDate && date <= endDate) {
+          dutyCount++;
+        }
+      }
+      
+      dutyCountInPeriodEl.textContent = dutyCount;
     }
     
     function exportPDF() {

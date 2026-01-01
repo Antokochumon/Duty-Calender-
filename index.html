@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>2025 Duty Calendar</title>
+  <title>Infinite Duty Calendar</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
+    /* ALL ORIGINAL STYLES REMAIN UNCHANGED */
     :root {
       --bg: #f8fafc;
       --text: #1e293b;
@@ -20,6 +21,7 @@
       --hover: #f1f5f9;
       --shadow: rgba(0, 0, 0, 0.05);
       --summary-height: 60px;
+      --notes: #8b5cf6;
     }
     body.dark {
       --bg: #0f172a;
@@ -33,6 +35,7 @@
       --today: #f87171;
       --hover: #1e293b;
       --shadow: rgba(0, 0, 0, 0.2);
+      --notes: #a78bfa;
     }
     * {
       box-sizing: border-box;
@@ -129,6 +132,7 @@
     .duty-summary { color: var(--duty); }
     .leave-summary { color: var(--leave); }
     .overtime-summary { color: var(--overtime); }
+    .notes-summary { color: var(--notes); }
     .calendar-nav {
       display: flex;
       justify-content: space-between;
@@ -142,6 +146,38 @@
       font-weight: 700;
       flex-grow: 1;
       padding: 0 8px;
+    }
+    .year-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .year-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 80px;
+      text-align: center;
+    }
+    .year-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.8rem;
+    }
+    .year-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 6px var(--shadow);
     }
     .swipe-area {
       position: absolute;
@@ -163,7 +199,6 @@
       margin: 0 auto;
       animation: fadeIn 0.5s ease-in-out;
     }
-    /* INCREASED DAY TITLE SIZE */
     .day-name {
       font-weight: 700;
       text-align: center;
@@ -212,6 +247,9 @@
       background-color: var(--overtime);
       color: white;
     }
+    .date.has-notes {
+      border: 2px solid var(--notes);
+    }
     .date-event-indicator {
       position: absolute;
       bottom: 4px;
@@ -256,7 +294,7 @@
     }
     .footer {
       text-align: center;
-      margin-top: 60px; /* Increased margin top */
+      margin-top: 60px;
       font-size: 0.75rem;
       opacity: 0.7;
       padding: 8px;
@@ -336,10 +374,9 @@
     .duty-btn { background: var(--duty); color: white; }
     .leave-btn { background: var(--leave); color: white; }
     .overtime-btn { background: var(--overtime); color: white; }
+    .notes-btn { background: var(--notes); color: white; }
     .delete-btn { 
-      background: var(--card); 
-      background-color: red;
-      var(--text);
+      background: #ef4444; 
       color: white;
       border: 1px solid var(--border);
       grid-column: span 2;
@@ -348,6 +385,55 @@
     .modal-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px var(--shadow);
+    }
+    .notes-textarea {
+      width: 100%;
+      height: 100px;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+    .notes-display {
+      text-align: left;
+      margin: 10px 0;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .notes-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .notes-save-btn {
+      background: var(--notes);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 600;
+    }
+    .notes-clear-btn {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 600;
     }
     .stats-modal {
       display: none;
@@ -418,7 +504,7 @@
       }
       .date {
         padding: 6px 0;
-        font-size: 1.1rem; /* Changed to 1.1rem as requested */
+        font-size: 1.1rem;
       }
       .modal-buttons {
         grid-template-columns: 1fr;
@@ -426,7 +512,6 @@
       .delete-btn {
         grid-column: span 1;
       }
-      /* Responsive day title size */
       .day-name {
         font-size: 0.85rem;
         padding: 8px 0;
@@ -445,17 +530,15 @@
       }
       .date {
         padding: 9px 0;
-        font-size: 1.1rem; /* Changed to 1.1rem as requested */
+        font-size: 1.1rem;
         border-radius: 8px;
       }
-      /* Responsive day title size */
       .day-name {
         font-size: 0.8rem;
         padding: 7px 0;
       }
     }
     
-    /* Compact mode for very small screens */
     @media (max-width: 360px) {
       body {
         padding: 8px;
@@ -473,9 +556,8 @@
       }
       .date {
         padding: 8.3px 0;
-        font-size: 1.1rem; /* Changed to 1.1rem as requested */
+        font-size: 1.1rem;
       }
-      /* Responsive day title size */
       .day-name {
         font-size: 0.75rem;
         padding: 6px 0;
@@ -487,7 +569,6 @@
       }
     }
     
-    /* Duty period count display */
     .duty-period-count {
       background: var(--card);
       border-radius: 12px;
@@ -506,7 +587,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>2025 Duty Calendar</h1>
+      <h1 id="pageTitle">Infinite Duty Calendar</h1>
       <div class="header-controls">
         <button class="icon-btn" onclick="toggleDarkMode()">
           <i class="fas fa-moon"></i>
@@ -522,6 +603,17 @@
         </button>
       </div>
     </header>
+
+    <!-- Year Navigation -->
+    <div class="year-nav">
+      <button class="year-btn" onclick="changeYear(-1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="year-title" id="yearTitle">2025</div>
+      <button class="year-btn" onclick="changeYear(1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
 
     <div class="duty-period-count" id="dutyPeriodCount">
       Duties from <span id="periodStart">Aug 25</span> to <span id="periodEnd">Sep 25</span>: <span id="dutyCountInPeriod">0</span>
@@ -539,6 +631,10 @@
       <div class="summary-item overtime-summary">
         <span class="summary-count" id="overtimeCount">0</span>
         <span class="summary-label">Overtime</span>
+      </div>
+      <div class="summary-item notes-summary">
+        <span class="summary-count" id="notesCount">0</span>
+        <span class="summary-label">Notes</span>
       </div>
     </div>
 
@@ -566,8 +662,39 @@
           <button class="modal-btn overtime-btn" onclick="setDutyType('overtime')">
             <i class="fas fa-briefcase"></i> Overtime
           </button>
+          <button class="modal-btn notes-btn" onclick="showNotesModal()">
+            <i class="fas fa-sticky-note"></i> Notes
+          </button>
           <button class="modal-btn delete-btn" onclick="setDutyType('delete')">
-            <i class="fas fa-trash-alt"></i> Remove
+            <i class="fas fa-trash-alt"></i> Remove All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 class="modal-title">Notes for Date</h3>
+        <span class="modal-date" id="notesModalDate"></span>
+        
+        <div id="notesDisplay" class="notes-display" style="display: none;">
+          <!-- Existing notes will appear here -->
+        </div>
+        
+        <textarea 
+          id="notesTextarea" 
+          class="notes-textarea" 
+          placeholder="Add your notes here... (Press Enter for new line)"
+        ></textarea>
+        
+        <div class="notes-actions">
+          <button class="notes-save-btn" onclick="saveNotes()">
+            <i class="fas fa-save"></i> Save Notes
+          </button>
+          <button class="notes-clear-btn" onclick="clearNotes()">
+            <i class="fas fa-trash"></i> Clear Notes
           </button>
         </div>
       </div>
@@ -602,30 +729,58 @@
       <i class="fas fa-calendar-day"></i>
     </div>
 
-    <div class="footer">Designed & Developed by <strong>Anto Kochumon</strong> <br> ©  2025 Duty Calendar</div>
+    <div class="footer">Designed & Developed by <strong>Anto Kochumon</strong> <br> © Infinite Duty Calendar</div>
   </div>
 
   <script>
     const calendarContainer = document.getElementById('calendarContainer');
     const monthTitle = document.getElementById('monthTitle');
+    const yearTitle = document.getElementById('yearTitle');
+    const pageTitle = document.getElementById('pageTitle');
     const dutyModal = document.getElementById('dutyModal');
+    const notesModal = document.getElementById('notesModal');
     const statsModal = document.getElementById('statsModal');
     const exportModal = document.getElementById('exportModal');
     const modalDateSpan = document.getElementById('modalDate');
+    const notesModalDateSpan = document.getElementById('notesModalDate');
+    const notesTextarea = document.getElementById('notesTextarea');
+    const notesDisplay = document.getElementById('notesDisplay');
     const dutyCountEl = document.getElementById('dutyCount');
     const leaveCountEl = document.getElementById('leaveCount');
     const overtimeCountEl = document.getElementById('overtimeCount');
+    const notesCountEl = document.getElementById('notesCount');
     const statsContent = document.getElementById('statsContent');
     const dutyPeriodCountEl = document.getElementById('dutyPeriodCount');
     const periodStartEl = document.getElementById('periodStart');
     const periodEndEl = document.getElementById('periodEnd');
     const dutyCountInPeriodEl = document.getElementById('dutyCountInPeriod');
     
-    let dutyData = JSON.parse(localStorage.getItem('dutyData2025')) || { duty: [], 'annual-leave': [], overtime: [] };
+    let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
-    const year = 2025;
     let selectedDate = null;
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Load data for all years
+    let dutyData = {};
+    
+    function loadYearData(year) {
+      const data = localStorage.getItem(`dutyData${year}`);
+      if (data) {
+        return JSON.parse(data);
+      }
+      return { duty: [], 'annual-leave': [], overtime: [], notes: {} };
+    }
+    
+    function saveYearData(year, data) {
+      localStorage.setItem(`dutyData${year}`, JSON.stringify(data));
+    }
+    
+    function getCurrentYearData() {
+      if (!dutyData[currentYear]) {
+        dutyData[currentYear] = loadYearData(currentYear);
+      }
+      return dutyData[currentYear];
+    }
     
     // Touch events for swiping
     let touchStartX = 0;
@@ -644,20 +799,20 @@
       const swipeThreshold = 50;
       
       if (touchEndX < touchStartX - swipeThreshold) {
-        // Swipe left - next month
         changeMonth(1);
       }
       
       if (touchEndX > touchStartX + swipeThreshold) {
-        // Swipe right - previous month
         changeMonth(-1);
       }
     }
 
-    function renderCalendar(month) {
+    function renderCalendar(month, year) {
       calendarContainer.innerHTML = '';
       const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
       monthTitle.textContent = `${monthName} ${year}`;
+      yearTitle.textContent = year;
+      pageTitle.textContent = `${year} Duty Calendar`;
       
       // Add day names
       dayNames.forEach(d => {
@@ -668,8 +823,9 @@
       });
       
       const firstDay = new Date(year, month, 1).getDay();
-      const firstDayIndex = (firstDay + 6) % 7; // Adjust so Monday is first day
+      const firstDayIndex = (firstDay + 6) % 7;
       const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const yearData = getCurrentYearData();
       
       // Add empty cells for days before the first day of the month
       for (let i = 0; i < firstDayIndex; i++) {
@@ -695,15 +851,29 @@
         if (dateStr === todayStr) div.classList.add('today');
         
         // Check for duty types
-        if (dutyData.duty.includes(dateStr)) div.classList.add('duty');
-        if (dutyData['annual-leave'].includes(dateStr)) div.classList.add('annual-leave');
-        if (dutyData.overtime.includes(dateStr)) div.classList.add('overtime');
+        if (yearData.duty.includes(dateStr)) div.classList.add('duty');
+        if (yearData['annual-leave'].includes(dateStr)) div.classList.add('annual-leave');
+        if (yearData.overtime.includes(dateStr)) div.classList.add('overtime');
+        
+        // Check for notes
+        if (yearData.notes && yearData.notes[dateStr]) {
+          div.classList.add('has-notes');
+        }
         
         // Add event indicator if needed
-        if (dutyData.duty.includes(dateStr) || dutyData['annual-leave'].includes(dateStr) || dutyData.overtime.includes(dateStr)) {
+        if (yearData.duty.includes(dateStr) || yearData['annual-leave'].includes(dateStr) || 
+            yearData.overtime.includes(dateStr) || (yearData.notes && yearData.notes[dateStr])) {
           const indicator = document.createElement('div');
           indicator.className = 'date-event-indicator';
-          indicator.innerHTML = '<div class="event-dot"></div>';
+          
+          // Add multiple dots for multiple event types
+          let dots = [];
+          if (yearData.duty.includes(dateStr)) dots.push('<div class="event-dot" style="background: var(--duty)"></div>');
+          if (yearData['annual-leave'].includes(dateStr)) dots.push('<div class="event-dot" style="background: var(--leave)"></div>');
+          if (yearData.overtime.includes(dateStr)) dots.push('<div class="event-dot" style="background: var(--overtime)"></div>');
+          if (yearData.notes && yearData.notes[dateStr]) dots.push('<div class="event-dot" style="background: var(--notes)"></div>');
+          
+          indicator.innerHTML = dots.join('');
           div.appendChild(indicator);
         }
         
@@ -716,31 +886,86 @@
       }
       
       updateSummary();
-      updateDutyPeriodCount(month);
+      updateDutyPeriodCount(month, year);
     }
 
     function showDutyModal(date) {
       const d = new Date(date);
-      modalDateSpan.textContent = `${d.toLocaleString('default', { weekday: 'short' })}, ${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${year}`;
+      modalDateSpan.textContent = `${d.toLocaleString('default', { weekday: 'short' })}, ${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${currentYear}`;
       dutyModal.style.display = 'block';
     }
     
+    function showNotesModal() {
+      closeModal(); // Close duty modal first
+      const d = new Date(selectedDate);
+      notesModalDateSpan.textContent = `${d.toLocaleString('default', { weekday: 'short' })}, ${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${currentYear}`;
+      
+      const yearData = getCurrentYearData();
+      const notes = yearData.notes && yearData.notes[selectedDate];
+      
+      if (notes) {
+        notesDisplay.textContent = notes;
+        notesDisplay.style.display = 'block';
+        notesTextarea.value = notes;
+      } else {
+        notesDisplay.style.display = 'none';
+        notesTextarea.value = '';
+      }
+      
+      notesModal.style.display = 'block';
+    }
+    
+    function saveNotes() {
+      if (!selectedDate) return;
+      
+      const yearData = getCurrentYearData();
+      const notes = notesTextarea.value.trim();
+      
+      if (!yearData.notes) yearData.notes = {};
+      
+      if (notes) {
+        yearData.notes[selectedDate] = notes;
+      } else {
+        delete yearData.notes[selectedDate];
+      }
+      
+      saveYearData(currentYear, yearData);
+      renderCalendar(currentMonth, currentYear);
+      closeModal();
+    }
+    
+    function clearNotes() {
+      if (!selectedDate) return;
+      
+      const yearData = getCurrentYearData();
+      
+      if (yearData.notes && yearData.notes[selectedDate]) {
+        delete yearData.notes[selectedDate];
+        saveYearData(currentYear, yearData);
+        renderCalendar(currentMonth, currentYear);
+      }
+      
+      closeModal();
+    }
+    
     function showStatsModal() {
-      // Calculate statistics
-      const totalDays = new Date(year, 12, 0).getDate(); // Days in the year
-      const dutyDays = dutyData.duty.length;
-      const leaveDays = dutyData['annual-leave'].length;
-      const overtimeDays = dutyData.overtime.length;
+      const yearData = getCurrentYearData();
+      const totalDays = new Date(currentYear, 12, 0).getDate();
+      const dutyDays = yearData.duty.length;
+      const leaveDays = yearData['annual-leave'].length;
+      const overtimeDays = yearData.overtime.length;
+      const notesDays = yearData.notes ? Object.keys(yearData.notes).length : 0;
       const freeDays = totalDays - (dutyDays + leaveDays + overtimeDays);
       
       const dutyPercent = ((dutyDays / totalDays) * 100).toFixed(1);
       const leavePercent = ((leaveDays / totalDays) * 100).toFixed(1);
       const overtimePercent = ((overtimeDays / totalDays) * 100).toFixed(1);
+      const notesPercent = ((notesDays / totalDays) * 100).toFixed(1);
       const freePercent = ((freeDays / totalDays) * 100).toFixed(1);
       
       statsContent.innerHTML = `
         <div class="stats-item">
-          <span>Total Days:</span>
+          <span>Total Days (${currentYear}):</span>
           <span>${totalDays}</span>
         </div>
         <div class="stats-item">
@@ -754,6 +979,10 @@
         <div class="stats-item">
           <span>Overtime Days:</span>
           <span>${overtimeDays} <span class="stats-percentage">(${overtimePercent}%)</span></span>
+        </div>
+        <div class="stats-item">
+          <span>Days with Notes:</span>
+          <span>${notesDays} <span class="stats-percentage">(${notesPercent}%)</span></span>
         </div>
         <div class="stats-item">
           <span>Free Days:</span>
@@ -770,6 +999,7 @@
 
     function closeModal() {
       dutyModal.style.display = 'none';
+      notesModal.style.display = 'none';
       statsModal.style.display = 'none';
       exportModal.style.display = 'none';
     }
@@ -777,51 +1007,75 @@
     function setDutyType(type) {
       if (!selectedDate) return;
       
+      const yearData = getCurrentYearData();
+      
       // Remove from all categories first
-      for (const t in dutyData) {
-        dutyData[t] = dutyData[t].filter(x => x !== selectedDate);
-      }
+      yearData.duty = yearData.duty.filter(x => x !== selectedDate);
+      yearData['annual-leave'] = yearData['annual-leave'].filter(x => x !== selectedDate);
+      yearData.overtime = yearData.overtime.filter(x => x !== selectedDate);
       
       // Add to selected category if not delete
       if (type !== 'delete') {
-        dutyData[type].push(selectedDate);
+        yearData[type].push(selectedDate);
       }
       
-      localStorage.setItem('dutyData2025', JSON.stringify(dutyData));
+      saveYearData(currentYear, yearData);
       dutyModal.style.display = 'none';
-      renderCalendar(currentMonth);
+      renderCalendar(currentMonth, currentYear);
     }
 
     function changeMonth(offset) {
       currentMonth += offset;
+      
       if (currentMonth > 11) {
         currentMonth = 0;
+        changeYear(1);
       } else if (currentMonth < 0) {
         currentMonth = 11;
+        changeYear(-1);
+      } else {
+        renderCalendar(currentMonth, currentYear);
       }
-      renderCalendar(currentMonth);
+    }
+    
+    function changeYear(offset) {
+      currentYear += offset;
+      // Infinite years - no limits
+      renderCalendar(currentMonth, currentYear);
     }
 
     function jumpToToday() {
       const today = new Date();
+      currentYear = today.getFullYear();
       currentMonth = today.getMonth();
-      renderCalendar(currentMonth);
+      renderCalendar(currentMonth, currentYear);
     }
 
     function updateSummary() {
-      // Count events for the current month
-      const monthPrefix = `${year}-${String(currentMonth + 1).padStart(2, '0')}`;
+      const yearData = getCurrentYearData();
+      const monthPrefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
       
-      const dutyCount = dutyData.duty.filter(date => date.startsWith(monthPrefix)).length;
-      const leaveCount = dutyData['annual-leave'].filter(date => date.startsWith(monthPrefix)).length;
-      const overtimeCount = dutyData.overtime.filter(date => date.startsWith(monthPrefix)).length;
+      const dutyCount = yearData.duty.filter(date => date.startsWith(monthPrefix)).length;
+      const leaveCount = yearData['annual-leave'].filter(date => date.startsWith(monthPrefix)).length;
+      const overtimeCount = yearData.overtime.filter(date => date.startsWith(monthPrefix)).length;
+      
+      // Count notes for current month
+      let notesCount = 0;
+      if (yearData.notes) {
+        Object.keys(yearData.notes).forEach(date => {
+          if (date.startsWith(monthPrefix)) {
+            notesCount++;
+          }
+        });
+      }
       
       dutyCountEl.textContent = dutyCount;
       leaveCountEl.textContent = leaveCount;
       overtimeCountEl.textContent = overtimeCount;
+      notesCountEl.textContent = notesCount;
     }
     
-    function updateDutyPeriodCount(month) {
+    function updateDutyPeriodCount(month, year) {
       // Calculate period from 25th of previous month to 25th of current month
       let startMonth = month - 1;
       let startYear = year;
@@ -834,17 +1088,16 @@
       const startDate = new Date(startYear, startMonth, 25);
       const endDate = new Date(year, month, 24);
       
-      // Format dates for display
       const startMonthName = startDate.toLocaleString('default', { month: 'short' });
       const endMonthName = endDate.toLocaleString('default', { month: 'short' });
       
       periodStartEl.textContent = `${startMonthName} ${startDate.getDate()}`;
       periodEndEl.textContent = `${endMonthName} ${endDate.getDate()}`;
       
-      // Count duties in this period
+      const yearData = getCurrentYearData();
       let dutyCount = 0;
       
-      for (const dutyDate of dutyData.duty) {
+      for (const dutyDate of yearData.duty) {
         const dateParts = dutyDate.split('-');
         const date = new Date(
           parseInt(dateParts[0]),
@@ -861,35 +1114,37 @@
     }
     
     function exportPDF() {
-      // Create a printable version of the calendar
+      const yearData = getCurrentYearData();
       const printableContent = document.createElement('div');
       printableContent.innerHTML = `
-        <h1 style="text-align: center; margin-bottom: 15px; font-size: 1.5rem;">2025 Duty Calendar</h1>
+        <h1 style="text-align: center; margin-bottom: 15px; font-size: 1.5rem;">${currentYear} Duty Calendar</h1>
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-          <div style="background: #10b981; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
-            <div style="font-size: 20px; font-weight: bold;">${dutyData.duty.length}</div>
+          <div style="background: #10b981; color: white; padding: 8px; border-radius: 6px; width: 23%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${yearData.duty.length}</div>
             <div style="font-size: 12px;">Duty Days</div>
           </div>
-          <div style="background: #6366f1; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
-            <div style="font-size: 20px; font-weight: bold;">${dutyData['annual-leave'].length}</div>
+          <div style="background: #6366f1; color: white; padding: 8px; border-radius: 6px; width: 23%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${yearData['annual-leave'].length}</div>
             <div style="font-size: 12px;">Leave Days</div>
           </div>
-          <div style="background: #f59e0b; color: white; padding: 8px; border-radius: 6px; width: 30%; text-align: center;">
-            <div style="font-size: 20px; font-weight: bold;">${dutyData.overtime.length}</div>
+          <div style="background: #f59e0b; color: white; padding: 8px; border-radius: 6px; width: 23%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${yearData.overtime.length}</div>
             <div style="font-size: 12px;">Overtime Days</div>
+          </div>
+          <div style="background: #8b5cf6; color: white; padding: 8px; border-radius: 6px; width: 23%; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${yearData.notes ? Object.keys(yearData.notes).length : 0}</div>
+            <div style="font-size: 12px;">Notes</div>
           </div>
         </div>
         <p style="text-align: center; margin-bottom: 15px; font-size: 12px;">Generated on ${new Date().toLocaleDateString()}</p>
       `;
       
-      // Create a temporary calendar for printing
       const tempCalendar = document.createElement('div');
       tempCalendar.innerHTML = calendarContainer.innerHTML;
       tempCalendar.style.display = 'grid';
       tempCalendar.style.gridTemplateColumns = 'repeat(7, 1fr)';
       tempCalendar.style.gap = '3px';
       
-      // Style the temporary calendar for printing
       const dates = tempCalendar.querySelectorAll('.date');
       dates.forEach(date => {
         date.style.padding = '6px 0';
@@ -907,11 +1162,13 @@
         } else if (date.classList.contains('overtime')) {
           date.style.background = '#f59e0b';
           date.style.color = 'white';
+        } else if (date.classList.contains('has-notes')) {
+          date.style.border = '2px solid #8b5cf6';
+          date.style.background = '#f8f9fa';
         } else {
           date.style.background = '#f8f9fa';
         }
         
-        // Highlight today
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         if (date.dataset.date === todayStr) {
@@ -922,10 +1179,9 @@
       
       printableContent.appendChild(tempCalendar);
       
-      // Generate PDF
       const options = {
         margin: 10,
-        filename: 'duty-calendar-2025.pdf',
+        filename: `duty-calendar-${currentYear}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -936,10 +1192,17 @@
     }
     
     function exportJSON() {
-      const dataStr = JSON.stringify(dutyData, null, 2);
+      const yearData = getCurrentYearData();
+      const exportData = {
+        year: currentYear,
+        data: yearData,
+        exportDate: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
       const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
       
-      const exportFileDefaultName = 'duty-calendar-2025.json';
+      const exportFileDefaultName = `duty-calendar-${currentYear}.json`;
       
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);
@@ -952,7 +1215,6 @@
       document.body.classList.toggle('dark');
       localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       
-      // Update button icon
       const themeIcon = document.querySelector('.icon-btn i.fa-moon, .icon-btn i.fa-sun');
       if (themeIcon) {
         if (document.body.classList.contains('dark')) {
@@ -979,7 +1241,8 @@
     document.addEventListener('touchstart', handleTouchStart);
     document.addEventListener('touchend', handleTouchEnd);
     
-    renderCalendar(currentMonth);
+    // Initialize with current year and month
+    renderCalendar(currentMonth, currentYear);
   </script>
 </body>
 </html>
